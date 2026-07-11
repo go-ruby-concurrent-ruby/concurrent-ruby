@@ -93,10 +93,20 @@ func main() {
 | `Concurrent::Array` | `Array` | `Push` `Pop` `Shift` `At` `Set` `DeleteAt` `Each` `ToSlice` |
 | `Concurrent::Hash` | `Hash` | `Get` `Set` `Delete` `KeyQ` `EachPair` `Keys` `Values` |
 | `Concurrent::Future` | `Future` | `FutureExecute` `Value` `ValueBang` `Wait` `State` `Reason` `PendingQ`/`FulfilledQ`/`RejectedQ` |
-| `Concurrent::Promise` | `Promise` | `Fulfill` `Reject` `Then` `Value` `State` `Reason` |
-| `Concurrent::ThreadPoolExecutor` / `FixedThreadPool` | `ThreadPoolExecutor` | `Post` `Shutdown` `WaitForTermination` `QueueLength` `CompletedTaskCount` |
+| `Concurrent::Promise` | `Promise` | `Fulfill` `Reject` `Then` `Rescue` `Chain` `FlatMap` `Value` `State` `Reason` |
+| `Concurrent::Promises` | (factory funcs) | `PromisesFuture` `PromisesFulfilledFuture` `PromisesRejectedFuture` `PromisesResolvableFuture`(`On`) `PromisesZip` |
+| `Concurrent::Delay` | `Delay` | `Value` `ValueBang` `State` `Reason` `PendingQ`/`FulfilledQ`/`RejectedQ` |
+| `Concurrent::Atom` | `Atom` | `Value` `Swap` `Reset` `CompareAndSet` `AddObserver` (validator-aware) |
+| `Concurrent::TVar` / `Concurrent.atomically` | `TVar` / `Atomically` | `Value` `SetValue` · `tx.Read` `tx.Write` (optimistic STM, auto-retry on conflict) |
+| `Concurrent::ScheduledTask` | `ScheduledTask` | `ScheduledTaskExecute` `Cancel` `Value` `ValueBang` `Wait` `State` `CancelledQ` |
+| `Concurrent::TimerTask` | `TimerTask` | `Execute` `Shutdown` `RunningQ` `ExecutionInterval` `SetObserver` |
+| `Concurrent::ThreadLocalVar` | `ThreadLocalVar` | `Value` `SetValue` `Bind` (per-goroutine) |
+| `Concurrent::ThreadPoolExecutor` / `FixedThreadPool` / `SingleThreadExecutor` | `ThreadPoolExecutor` | `Post` `Shutdown` `WaitForTermination` `QueueLength` `CompletedTaskCount` |
+| `Concurrent::CachedThreadPool` | `CachedThreadPool` | `Post` `Shutdown` `WaitForTermination` `CompletedTaskCount` `LargestPoolSize` |
+| `Concurrent.global_*_executor` | `GlobalIOExecutor` / `GlobalFastExecutor` / `GlobalImmediateExecutor` | process-wide singletons |
 | `Concurrent::ImmediateExecutor` | `ImmediateExecutor` | `Post` |
 | `Concurrent::CountDownLatch` | `CountDownLatch` | `CountDown` `Count` `Wait` |
+| `Concurrent::Event` | `Event` | `Set` `Reset` `TryQ` `SetQ` `Wait` |
 | `Concurrent::Semaphore` | `Semaphore` | `Acquire` `Release` `TryAcquire` `AvailablePermits` `Drain` `ReducePermits` |
 | `Concurrent::CyclicBarrier` | `CyclicBarrier` | `Wait` `Parties` `NumberWaiting` `BrokenQ` `Reset` |
 
@@ -111,12 +121,19 @@ constant.
 
 ## Scope
 
-This models a faithful **core**, not the entire gem. Deferred for now: the
-higher-level dataflow layer (`Concurrent::Promises`, `dataflow`, `Async`,
-`Actor`), `TVar`/software-transactional memory, `Agent`, `TimerTask`/scheduled
-executors, `ThreadLocalVar`, `Delay`, `MVar`, `AtomicMarkableReference`, and the
-tuple/exchanger primitives. The seams here (the `Executor` interface and the Go
-func callbacks) are the foundation those layers would build on.
+This models a faithful, broad **core** of the gem. In addition to the atomics,
+thread-safe collections, futures, pools, and synchronizers above, it now
+implements the composable promise layer (`Concurrent::Promises` factories plus
+`Promise#rescue`/`#chain`/`#flat_map`/`zip`), `Delay`, `ScheduledTask`,
+`TimerTask`, `Atom`, `Event`, `ThreadLocalVar`, `CachedThreadPool` /
+`SingleThreadExecutor`, the `Concurrent.global_*` executors, and
+`TVar`/`Concurrent.atomically` software transactional memory (optimistic reads
+with automatic retry on write conflict).
+
+Still deferred (genuinely higher-level or niche): `Actor`, `Async`, `dataflow`,
+`Agent`, `MVar`, `AtomicMarkableReference`, and the tuple/exchanger primitives.
+The seams here (the `Executor` interface and the Go func callbacks) are the
+foundation those layers would build on.
 
 ## Tests & coverage
 

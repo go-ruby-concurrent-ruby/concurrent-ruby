@@ -15,6 +15,15 @@ func waitDone(done <-chan struct{}, timeout time.Duration) bool {
 		<-done
 		return true
 	}
+	// Prefer an already-closed channel, so a zero (or any) timeout still reports
+	// completion when the event has already happened — matching the gem, whose
+	// wait(0) on an already-set latch/event returns true rather than racing the
+	// timer.
+	select {
+	case <-done:
+		return true
+	default:
+	}
 	select {
 	case <-done:
 		return true
