@@ -52,4 +52,13 @@ var (
 	// ErrBrokenBarrier mirrors the broken state of a CyclicBarrier
 	// (Java's BrokenBarrierException), reached on timeout or reset.
 	ErrBrokenBarrier = errors.New("concurrent: broken barrier")
+
+	// ErrCancelled mirrors Concurrent::CancelledOperationError: the rejection
+	// reason of a ScheduledTask cancelled before it ran.
+	ErrCancelled = errors.New("concurrent: cancelled operation")
+
+	// ErrExecution mirrors the reason reported to a TimerTask observer when the
+	// task body raises: the gem passes the raised exception; here a panicking
+	// body surfaces as this sentinel.
+	ErrExecution = errors.New("concurrent: execution error")
 )
